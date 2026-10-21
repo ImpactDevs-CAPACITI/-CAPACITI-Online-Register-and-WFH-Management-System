@@ -19,7 +19,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.audit.AuditLogDt
 import za.ac.capaciti.capacitionlineregisterbackend.service.AuditService;
 
 @RestController
-@RequestMapping("/audit")
+@RequestMapping("/api/v1/audit")
 public class AuditController {
 
     private final AuditService auditService;

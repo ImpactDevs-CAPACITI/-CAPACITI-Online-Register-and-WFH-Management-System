@@ -26,7 +26,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.enums.Role;
 import za.ac.capaciti.capacitionlineregisterbackend.service.IUserService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 public class UserController {
 
     private final IUserService userService;

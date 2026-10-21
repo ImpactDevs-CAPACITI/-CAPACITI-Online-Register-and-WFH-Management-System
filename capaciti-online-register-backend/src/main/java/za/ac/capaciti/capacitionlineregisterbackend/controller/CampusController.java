@@ -25,7 +25,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.campus.UpdateCam
 import za.ac.capaciti.capacitionlineregisterbackend.service.CampusService;
 
 @RestController
-@RequestMapping("/campuses")
+@RequestMapping("/api/v1/campuses")
 public class CampusController {
 
     private final CampusService campusService;

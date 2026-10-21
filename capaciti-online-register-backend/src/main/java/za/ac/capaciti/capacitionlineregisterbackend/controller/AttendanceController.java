@@ -32,7 +32,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.enums.WorkMode;
 import za.ac.capaciti.capacitionlineregisterbackend.service.IAttendanceService;
 
 @RestController
-@RequestMapping("/attendance")
+@RequestMapping("/api/v1/attendance")
 public class AttendanceController {
 
     private final IAttendanceService attendanceService;

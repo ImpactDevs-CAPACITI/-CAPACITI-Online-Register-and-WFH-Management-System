@@ -27,7 +27,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WfhStatus;
 import za.ac.capaciti.capacitionlineregisterbackend.service.WfhRequestService;
 
 @RestController
-@RequestMapping("/wfh-requests")
+@RequestMapping("/api/v1/wfh-requests")
 public class WfhRequestController {
     private final WfhRequestService wfhRequestService;
 
