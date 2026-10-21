@@ -1,18 +1,15 @@
 package za.ac.capaciti.capacitionlineregisterbackend.util;
 
+import org.apache.commons.validator.routines.EmailValidator;
+
 public final class Helper {
+
     private Helper() {
     }
 
     public static boolean hasText(String value) {
         return value != null && !value.trim().isEmpty();
     }
-}
-import org.apache.commons.validator.routines.EmailValidator;
-
-public final class Helper {
-
-    private Helper() {}
 
     // Returns true if the object is null
     public static boolean isNull(Object obj) {

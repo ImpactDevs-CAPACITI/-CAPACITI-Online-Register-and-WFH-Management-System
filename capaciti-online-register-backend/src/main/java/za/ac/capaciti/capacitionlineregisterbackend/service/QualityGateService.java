@@ -16,12 +16,12 @@ import za.ac.capaciti.capacitionlineregisterbackend.util.Helper;
 public class QualityGateService implements IQualityGateService {
 
     private final GeminiClient geminiClient;
-    private final QualityAttemptService qualityAttemptService;
+    private final IQualityAttemptService qualityAttemptService;
     private final int maxAttempts;
 
     public QualityGateService(
             GeminiClient geminiClient,
-            QualityAttemptService qualityAttemptService,
+            IQualityAttemptService qualityAttemptService,
             @Value("${app.quality.max-attempts:3}") int maxAttempts) {
         this.geminiClient = geminiClient;
         this.qualityAttemptService = qualityAttemptService;

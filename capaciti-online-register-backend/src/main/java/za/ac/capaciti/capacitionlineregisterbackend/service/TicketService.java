@@ -35,14 +35,14 @@ public class TicketService implements ITicketService {
     private final WfhRequestRepository wfhRequestRepository;
     private final TicketMapper ticketMapper;
     private final IQualityGateService qualityGateService;
-    private final AuditService auditService;
+    private final IAuditService auditService;
 
     public TicketService(SupportTicketRepository supportTicketRepository,
                         UserRepository userRepository,
                         WfhRequestRepository wfhRequestRepository,
                         TicketMapper ticketMapper,
                         IQualityGateService qualityGateService,
-                        AuditService auditService) {
+                        IAuditService auditService) {
         this.supportTicketRepository = supportTicketRepository;
         this.userRepository = userRepository;
         this.wfhRequestRepository = wfhRequestRepository;
@@ -123,7 +123,7 @@ public class TicketService implements ITicketService {
         ticket.setResolutionNote(request.resolutionNote());
 
         SupportTicket saved = supportTicketRepository.save(ticket);
-        auditService.log("TICKET_RESOLVED", saved.getId(), "SupportTicket", Map.of(
+        auditService.log(actor, "TICKET_RESOLVED", "SupportTicket", saved.getId().toString(), Map.of(
                 "type", saved.getType(),
                 "workMode", saved.getWorkMode(),
                 "prolonged", saved.isProlonged()

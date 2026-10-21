@@ -8,5 +8,5 @@ public interface IAuthService {
 
     LoginResponse login(LoginRequest request);
 
-    UserDto me();
+    UserDto me(String email);
 }

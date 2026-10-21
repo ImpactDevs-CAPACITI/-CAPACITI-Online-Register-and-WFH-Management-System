@@ -1,9 +1,10 @@
 package za.ac.capaciti.capacitionlineregisterbackend.controller;
 
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -23,46 +24,51 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.ticket.TicketDto
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.TicketStatus;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.TicketType;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WorkMode;
-import za.ac.capaciti.capacitionlineregisterbackend.service.ITicketService;
+import za.ac.capaciti.capacitionlineregisterbackend.service.TicketService;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/tickets")
 public class TicketController {
-    private final ITicketService ticketService;
+    private final TicketService ticketService;
 
-    public TicketController(ITicketService ticketService) {
+    @Autowired
+    public TicketController(TicketService ticketService) {
         this.ticketService = ticketService;
     }
 
-    @PostMapping("/tickets")
+    @PostMapping
     @PreAuthorize("hasRole('CANDIDATE')")
     public ResponseEntity<TicketActionResponse> create(Authentication authentication,
                                                      @Valid @RequestBody CreateTicketRequest request) {
-        return ResponseEntity.ok(ticketService.create(authentication.getName(), request));
+        return new ResponseEntity<>(ticketService.create(authentication.getName(), request), HttpStatus.CREATED);
     }
 
-    @GetMapping("/tickets/me")
+    @GetMapping("/me")
     @PreAuthorize("hasRole('CANDIDATE')")
-    public Page<TicketDto> mine(Authentication authentication,
-                               @PageableDefault(size = 20) Pageable pageable) {
-        return ticketService.mine(authentication.getName(), pageable);
+    public ResponseEntity<Page<TicketDto>> mine(Authentication authentication,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "20") int size) {
+        return new ResponseEntity<>(ticketService.mine(authentication.getName(), PageRequest.of(page, size)),
+                HttpStatus.OK);
     }
 
-    @GetMapping("/tickets")
-    @PreAuthorize("hasRole('TECH_CHAMP') or hasRole('ADMIN')")
-    public Page<TicketDto> search(@RequestParam(required = false) TicketStatus status,
-                                 @RequestParam(required = false) TicketType type,
-                                 @RequestParam(required = false) WorkMode workMode,
-                                 @RequestParam(required = false) Boolean prolonged,
-                                 @PageableDefault(size = 20) Pageable pageable) {
-        return ticketService.search(status, type, workMode, prolonged, pageable);
+    @GetMapping
+    @PreAuthorize("hasAnyRole('TECH_CHAMP','ADMIN')")
+    public ResponseEntity<Page<TicketDto>> search(@RequestParam(required = false) TicketStatus status,
+                                                  @RequestParam(required = false) TicketType type,
+                                                  @RequestParam(required = false) WorkMode workMode,
+                                                  @RequestParam(required = false) Boolean prolonged,
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "20") int size) {
+        return new ResponseEntity<>(ticketService.search(status, type, workMode, prolonged,
+                PageRequest.of(page, size)), HttpStatus.OK);
     }
 
-    @PatchMapping("/tickets/{id}/resolve")
-    @PreAuthorize("hasRole('TECH_CHAMP') or hasRole('ADMIN')")
+    @PatchMapping("/{id}/resolve")
+    @PreAuthorize("hasAnyRole('TECH_CHAMP','ADMIN')")
     public ResponseEntity<TicketDto> resolve(Authentication authentication,
                                             @PathVariable UUID id,
                                             @Valid @RequestBody ResolveTicketRequest request) {
-        return ResponseEntity.ok(ticketService.resolve(id, request, authentication.getName()));
+        return new ResponseEntity<>(ticketService.resolve(id, request, authentication.getName()), HttpStatus.OK);
     }
 }

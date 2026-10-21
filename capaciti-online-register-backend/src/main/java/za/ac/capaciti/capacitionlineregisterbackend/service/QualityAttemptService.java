@@ -10,7 +10,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.enums.QualityContext;
 import za.ac.capaciti.capacitionlineregisterbackend.repository.QualityAttemptRepository;
 
 @Service
-public class QualityAttemptService {
+public class QualityAttemptService implements IQualityAttemptService {
 
     private final QualityAttemptRepository qualityAttemptRepository;
 
@@ -18,6 +18,7 @@ public class QualityAttemptService {
         this.qualityAttemptRepository = qualityAttemptRepository;
     }
 
+    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public int recordFailure(User user, QualityContext context, String contextRef, String feedback) {
         QualityAttempt qualityAttempt = qualityAttemptRepository
@@ -32,6 +33,7 @@ public class QualityAttemptService {
         return qualityAttemptRepository.save(qualityAttempt).getAttempts();
     }
 
+    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void reset(User user, QualityContext context, String contextRef) {
         qualityAttemptRepository.findByUserAndContextTypeAndContextRef(user, context, contextRef)

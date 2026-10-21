@@ -35,13 +35,13 @@ public class WfhRequestService implements IWfhRequestService {
     private final UserRepository userRepository;
     private final WfhRequestMapper wfhRequestMapper;
     private final IQualityGateService qualityGateService;
-    private final AuditService auditService;
+    private final IAuditService auditService;
 
     public WfhRequestService(WfhRequestRepository wfhRequestRepository,
                             UserRepository userRepository,
                             WfhRequestMapper wfhRequestMapper,
                             IQualityGateService qualityGateService,
-                            AuditService auditService) {
+                            IAuditService auditService) {
         this.wfhRequestRepository = wfhRequestRepository;
         this.userRepository = userRepository;
         this.wfhRequestMapper = wfhRequestMapper;
@@ -137,7 +137,7 @@ public class WfhRequestService implements IWfhRequestService {
         WfhRequest saved = wfhRequestRepository.save(entity);
 
         String event = approved ? "WFH_APPROVED" : "WFH_REJECTED";
-        auditService.log(event, saved.getId(), "WfhRequest", Map.of(
+        auditService.log(actor, event, "WfhRequest", saved.getId().toString(), Map.of(
                 "userId", saved.getUser().getId(),
                 "startDate", saved.getStartDate(),
                 "endDate", saved.getEndDate()
@@ -164,7 +164,7 @@ public class WfhRequestService implements IWfhRequestService {
 
         entity.setStatus(WfhStatus.CANCELLED);
         WfhRequest saved = wfhRequestRepository.save(entity);
-        auditService.log("WFH_CANCELLED", saved.getId(), "WfhRequest", Map.of(
+        auditService.log(saved.getUser(), "WFH_CANCELLED", "WfhRequest", saved.getId().toString(), Map.of(
                 "userId", saved.getUser().getId(),
                 "startDate", saved.getStartDate(),
                 "endDate", saved.getEndDate()

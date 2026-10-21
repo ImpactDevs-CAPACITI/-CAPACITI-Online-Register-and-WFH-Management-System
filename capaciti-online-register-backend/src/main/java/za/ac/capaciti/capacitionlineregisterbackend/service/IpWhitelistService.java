@@ -7,8 +7,9 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Service;
 
 @Service
-public class IpWhitelistService {
+public class IpWhitelistService implements IIpWhitelistService {
 
+    @Override
     public String extractClientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (forwardedFor == null || forwardedFor.isBlank()) {
@@ -20,6 +21,7 @@ public class IpWhitelistService {
         return clientIp.isEmpty() ? request.getRemoteAddr() : clientIp;
     }
 
+    @Override
     public boolean isWhitelisted(String ip, List<String> cidrs) {
         if (ip == null || ip.isBlank() || cidrs == null) {
             return false;
@@ -41,6 +43,7 @@ public class IpWhitelistService {
         return false;
     }
 
+    @Override
     public String toCidr(String ip) {
         if (ip == null || ip.isBlank()) {
             return null;

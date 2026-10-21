@@ -1,8 +1,11 @@
 package za.ac.capaciti.capacitionlineregisterbackend.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +23,7 @@ public class AuthController {
 
     private final IAuthService authService;
 
+    @Autowired
     public AuthController(IAuthService authService) {
         this.authService = authService;
     }
@@ -27,12 +31,12 @@ public class AuthController {
     @PostMapping("/login")
     @PreAuthorize("permitAll()")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+        return new ResponseEntity<>(authService.login(request), HttpStatus.OK);
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserDto> me() {
-        return ResponseEntity.ok(authService.me());
+    public ResponseEntity<UserDto> me(Authentication authentication) {
+        return new ResponseEntity<>(authService.me(authentication.getName()), HttpStatus.OK);
     }
 }
