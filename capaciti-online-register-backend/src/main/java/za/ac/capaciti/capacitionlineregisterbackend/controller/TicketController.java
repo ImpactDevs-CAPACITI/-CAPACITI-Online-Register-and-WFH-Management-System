@@ -27,7 +27,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WorkMode;
 import za.ac.capaciti.capacitionlineregisterbackend.service.TicketService;
 
 @RestController
-@RequestMapping("/tickets")
+@RequestMapping("/api/v1/tickets")
 public class TicketController {
     private final TicketService ticketService;
 

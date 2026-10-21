@@ -21,7 +21,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.prompt.SubmitPro
 import za.ac.capaciti.capacitionlineregisterbackend.service.PromptService;
 
 @RestController
-@RequestMapping("/prompts")
+@RequestMapping("/api/v1/prompts")
 public class PromptController {
 
     private final PromptService promptService;
