@@ -4,8 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +30,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.wfh.WfhActionRes
 import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.wfh.WfhDecisionRequest;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.wfh.WfhRequestDto;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WfhStatus;
+import za.ac.capaciti.capacitionlineregisterbackend.enums.QualityContext;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.BadRequestException;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.ConflictException;
 import za.ac.capaciti.capacitionlineregisterbackend.mappers.WfhRequestMapper;
@@ -71,28 +71,28 @@ class WfhRequestServiceTest {
 
     @Test
     void startDateInPastThrowsBadRequest() {
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         CreateWfhRequest request = new CreateWfhRequest("draft-1", LocalDate.now().minusDays(1), LocalDate.now().plusDays(2), "Need time", new ReadinessDto(true, true, true, true));
         assertThrows(BadRequestException.class, () -> service.create("candidate@test.com", request));
     }
 
     @Test
     void endDateBeforeStartDateThrowsBadRequest() {
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         CreateWfhRequest request = new CreateWfhRequest("draft-2", LocalDate.now().plusDays(5), LocalDate.now().plusDays(2), "Need time", new ReadinessDto(true, true, true, true));
         assertThrows(BadRequestException.class, () -> service.create("candidate@test.com", request));
     }
 
     @Test
     void moreThan10DaysThrowsBadRequest() {
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         CreateWfhRequest request = new CreateWfhRequest("draft-3", LocalDate.now().plusDays(1), LocalDate.now().plusDays(12), "Need time", new ReadinessDto(true, true, true, true));
         assertThrows(BadRequestException.class, () -> service.create("candidate@test.com", request));
     }
 
     @Test
     void overlappingRequestThrowsConflict() {
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         when(wfhRequestRepository.existsOverlapping(user, LocalDate.now().plusDays(1), LocalDate.now().plusDays(3))).thenReturn(true);
         CreateWfhRequest request = new CreateWfhRequest("draft-4", LocalDate.now().plusDays(1), LocalDate.now().plusDays(3), "Need time", new ReadinessDto(true, true, true, true));
         assertThrows(ConflictException.class, () -> service.create("candidate@test.com", request));
@@ -100,8 +100,8 @@ class WfhRequestServiceTest {
 
     @Test
     void rejectedQualityReturnsNullRequestAndSavesNothing() {
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
-        when(qualityGateService.check(eq(user), eq("WFH_REASON"), eq("draft-5"), eq("Need time"))).thenReturn(new QualityResult(false, false, "Rejected"));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
+        when(qualityGateService.check(eq(user), eq(QualityContext.WFH_REASON), eq("draft-5"), eq("Need time"))).thenReturn(new QualityResult(false, false, "Rejected", 1, false));
         CreateWfhRequest request = new CreateWfhRequest("draft-5", LocalDate.now().plusDays(1), LocalDate.now().plusDays(2), "Need time", new ReadinessDto(true, true, true, true));
         WfhActionResponse response = service.create("candidate@test.com", request);
         assertNull(response.request());
@@ -110,9 +110,9 @@ class WfhRequestServiceTest {
 
     @Test
     void acceptedRequestSavesPendingAndCopiesFlaggedValue() {
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         when(wfhRequestRepository.existsOverlapping(user, LocalDate.now().plusDays(1), LocalDate.now().plusDays(2))).thenReturn(false);
-        when(qualityGateService.check(eq(user), eq("WFH_REASON"), eq("draft-6"), eq("Need time"))).thenReturn(new QualityResult(true, true, "Accepted"));
+        when(qualityGateService.check(eq(user), eq(QualityContext.WFH_REASON), eq("draft-6"), eq("Need time"))).thenReturn(new QualityResult(true, true, "Accepted", 0, false));
         when(wfhRequestRepository.save(any(WfhRequest.class))).thenAnswer(invocation -> {
             WfhRequest entity = invocation.getArgument(0);
             entity.setId(UUID.randomUUID());
@@ -130,7 +130,7 @@ class WfhRequestServiceTest {
     void decideNonPendingRequestThrowsConflict() {
         User reviewer = new User();
         reviewer.setEmail("manager@test.com");
-        when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(reviewer));
+        when(userRepository.findByEmailIgnoreCase("manager@test.com")).thenReturn(Optional.of(reviewer));
         WfhRequest current = new WfhRequest();
         current.setStatus(WfhStatus.APPROVED);
         when(wfhRequestRepository.findById(any())).thenReturn(Optional.of(current));
@@ -141,7 +141,7 @@ class WfhRequestServiceTest {
     void rejectingWithoutCommentThrowsBadRequest() {
         User reviewer = new User();
         reviewer.setEmail("manager@test.com");
-        when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(reviewer));
+        when(userRepository.findByEmailIgnoreCase("manager@test.com")).thenReturn(Optional.of(reviewer));
         WfhRequest current = new WfhRequest();
         current.setStatus(WfhStatus.PENDING);
         when(wfhRequestRepository.findById(any())).thenReturn(Optional.of(current));
@@ -154,7 +154,7 @@ class WfhRequestServiceTest {
         User reviewer = new User();
         reviewer.setId(UUID.randomUUID());
         reviewer.setEmail("manager@test.com");
-        when(userRepository.findByEmail("manager@test.com")).thenReturn(Optional.of(reviewer));
+        when(userRepository.findByEmailIgnoreCase("manager@test.com")).thenReturn(Optional.of(reviewer));
         WfhRequest current = WfhRequest.builder().user(user).status(WfhStatus.PENDING).startDate(LocalDate.now().plusDays(1)).endDate(LocalDate.now().plusDays(3)).reason("Need time").build();
         current.setId(id);
         when(wfhRequestRepository.findById(id)).thenReturn(Optional.of(current));
@@ -163,6 +163,6 @@ class WfhRequestServiceTest {
 
         WfhRequestDto result = service.decide(id, new WfhDecisionRequest(true, "ok"), "manager@test.com");
         assertEquals(WfhStatus.APPROVED, result.status());
-        verify(auditService).log(eq("WFH_APPROVED"), eq(id), eq("WfhRequest"), any(Map.class));
+        verify(auditService).log(any(User.class), eq("WFH_APPROVED"), eq("WfhRequest"), eq(id.toString()), anyMap());
     }
 }

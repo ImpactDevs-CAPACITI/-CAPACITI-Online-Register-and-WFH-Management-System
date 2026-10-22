@@ -31,6 +31,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.ticket.TicketDto
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.TicketStatus;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.TicketType;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WorkMode;
+import za.ac.capaciti.capacitionlineregisterbackend.enums.QualityContext;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.BadRequestException;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.ConflictException;
 import za.ac.capaciti.capacitionlineregisterbackend.mappers.TicketMapper;
@@ -66,9 +67,9 @@ class TicketServiceTest {
         User user = new User();
         user.setId(UUID.randomUUID());
         user.setEmail("candidate@test.com");
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         when(wfhRequestRepository.findApprovedCoveringForUser(user, any())).thenReturn(List.of(new WfhRequest()));
-        when(qualityGateService.check(eq(user), eq("TICKET"), eq("draft-1"), eq("issue"))).thenReturn(new QualityResult(true, false, "ok"));
+        when(qualityGateService.check(eq(user), eq(QualityContext.TICKET), eq("draft-1"), eq("issue"))).thenReturn(new QualityResult(true, true, "ok", 0, false));
         when(supportTicketRepository.save(any(SupportTicket.class))).thenAnswer(invocation -> {
             SupportTicket saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
@@ -84,7 +85,7 @@ class TicketServiceTest {
     void invalidAttachmentLinkThrowsBadRequest() {
         User user = new User();
         user.setEmail("candidate@test.com");
-        when(userRepository.findByEmail("candidate@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("candidate@test.com")).thenReturn(Optional.of(user));
         CreateTicketRequest request = new CreateTicketRequest("draft-2", TicketType.ACCOUNT, "title", "issue", "ftp://example.com/file");
         assertThrows(BadRequestException.class, () -> service.create("candidate@test.com", request));
     }
@@ -110,7 +111,7 @@ class TicketServiceTest {
     void resolveOnResolvedTicketThrowsConflict() {
         User actor = new User();
         actor.setEmail("champion@test.com");
-        when(userRepository.findByEmail("champion@test.com")).thenReturn(Optional.of(actor));
+        when(userRepository.findByEmailIgnoreCase("champion@test.com")).thenReturn(Optional.of(actor));
         SupportTicket ticket = new SupportTicket();
         ticket.setId(UUID.randomUUID());
         ticket.setStatus(TicketStatus.RESOLVED);

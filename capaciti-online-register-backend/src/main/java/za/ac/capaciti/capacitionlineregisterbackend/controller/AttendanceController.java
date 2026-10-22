@@ -29,16 +29,16 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.attendance.Clock
 import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.attendance.ExcuseRequest;
 import za.ac.capaciti.capacitionlineregisterbackend.enums.ArrivalStatus;
 import za.ac.capaciti.capacitionlineregisterbackend.enums.WorkMode;
-import za.ac.capaciti.capacitionlineregisterbackend.service.IAttendanceService;
+import za.ac.capaciti.capacitionlineregisterbackend.service.AttendanceService;
 
 @RestController
 @RequestMapping("/api/v1/attendance")
 public class AttendanceController {
 
-    private final IAttendanceService attendanceService;
+    private final AttendanceService attendanceService;
 
     @Autowired
-    public AttendanceController(IAttendanceService attendanceService) {
+    public AttendanceController(AttendanceService attendanceService) {
         this.attendanceService = attendanceService;
     }
 

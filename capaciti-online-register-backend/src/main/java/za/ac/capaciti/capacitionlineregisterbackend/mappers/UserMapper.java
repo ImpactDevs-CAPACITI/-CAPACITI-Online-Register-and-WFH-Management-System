@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 
 import za.ac.capaciti.capacitionlineregisterbackend.domain.User;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.user.UserDto;
+import za.ac.capaciti.capacitionlineregisterbackend.enums.UserRole;
 
 @Component
 public class UserMapper {
@@ -13,7 +14,7 @@ public class UserMapper {
                 user.getId(),
                 user.getEmail(),
                 user.getFullName(),
-                user.getRole(),
+                UserRole.valueOf(user.getRole()),
                 user.getDefaultMode(),
                 user.getCampus() == null ? null : user.getCampus().getId(),
                 user.getCampus() == null ? null : user.getCampus().getName(),

@@ -18,6 +18,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.wfh.WfhActionRes
 import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.wfh.WfhDecisionRequest;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.wfh.WfhRequestDto;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WfhStatus;
+import za.ac.capaciti.capacitionlineregisterbackend.enums.QualityContext;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.BadRequestException;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.ConflictException;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.ResourceNotFoundException;
@@ -51,7 +52,7 @@ public class WfhRequestService implements IWfhRequestService {
 
     @Override
     public WfhActionResponse create(String email, CreateWfhRequest request) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
         LocalDate startDate = request.startDate();
@@ -70,7 +71,7 @@ public class WfhRequestService implements IWfhRequestService {
             throw new ConflictException("WFH_OVERLAP", "WFH request overlaps with an existing approved or pending request.");
         }
 
-        QualityResult quality = qualityGateService.check(user, WFH_REASON, request.draftKey(), request.reason());
+        QualityResult quality = qualityGateService.check(user, QualityContext.WFH_REASON, request.draftKey(), request.reason());
         if (!quality.accepted()) {
             return new WfhActionResponse(null, quality);
         }
@@ -92,7 +93,7 @@ public class WfhRequestService implements IWfhRequestService {
     @Override
     @Transactional(readOnly = true)
     public Page<WfhRequestDto> mine(String email, Pageable pageable) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
         return wfhRequestRepository.findByUserOrderByCreatedAtDesc(user, pageable)
                 .map(wfhRequestMapper::toDto);
@@ -116,7 +117,7 @@ public class WfhRequestService implements IWfhRequestService {
     @Override
     @Transactional
     public WfhRequestDto decide(UUID id, WfhDecisionRequest request, String actorEmail) {
-        User actor = userRepository.findByEmail(actorEmail)
+        User actor = userRepository.findByEmailIgnoreCase(actorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + actorEmail));
         WfhRequest entity = wfhRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("WFH request not found: " + id));
@@ -132,7 +133,7 @@ public class WfhRequestService implements IWfhRequestService {
 
         entity.setStatus(approved ? WfhStatus.APPROVED : WfhStatus.REJECTED);
         entity.setReviewedBy(actor);
-        entity.setReviewedAt(TimeUtil.now());
+        entity.setReviewedAt(TimeUtil.now().toInstant());
         entity.setReviewComment(request.comment());
         WfhRequest saved = wfhRequestRepository.save(entity);
 

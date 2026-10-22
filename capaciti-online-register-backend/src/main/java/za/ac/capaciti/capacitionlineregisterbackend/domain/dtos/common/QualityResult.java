@@ -1,4 +1,10 @@
 package za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.common;
 
-public record QualityResult(boolean accepted, boolean flagged, String message) {
-}
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record QualityResult(
+	boolean accepted,
+	@JsonProperty("isValid") boolean isValid,
+	String feedbackMessage,
+	int attempt,
+	boolean flagged) {}
