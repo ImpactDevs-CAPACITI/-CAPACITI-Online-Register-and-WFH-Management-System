@@ -15,7 +15,7 @@ public class TicketMapper {
             return null;
         }
 
-        Instant now = TimeUtil.now();
+        Instant now = TimeUtil.now().toInstant();
         long ageMinutes = Duration.between(ticket.getCreatedAt(), now).toMinutes();
 
         return new TicketDto(

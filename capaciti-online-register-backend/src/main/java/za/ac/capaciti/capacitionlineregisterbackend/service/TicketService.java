@@ -19,6 +19,7 @@ import za.ac.capaciti.capacitionlineregisterbackend.domain.dtos.ticket.TicketDto
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.TicketStatus;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.TicketType;
 import za.ac.capaciti.capacitionlineregisterbackend.domain.enums.WorkMode;
+import za.ac.capaciti.capacitionlineregisterbackend.enums.QualityContext;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.BadRequestException;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.ConflictException;
 import za.ac.capaciti.capacitionlineregisterbackend.exception.ResourceNotFoundException;
@@ -53,7 +54,7 @@ public class TicketService implements ITicketService {
 
     @Override
     public TicketActionResponse create(String email, CreateTicketRequest request) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
         if (request.attachmentUrl() != null && !request.attachmentUrl().startsWith("https://")) {
@@ -64,7 +65,7 @@ public class TicketService implements ITicketService {
                 ? WorkMode.ON_SITE
                 : WorkMode.WFH;
 
-        QualityResult quality = qualityGateService.check(user, "TICKET", request.draftKey(), request.description());
+        QualityResult quality = qualityGateService.check(user, QualityContext.TICKET, request.draftKey(), request.description());
         if (!quality.accepted()) {
             return new TicketActionResponse(null, quality);
         }
@@ -92,7 +93,7 @@ public class TicketService implements ITicketService {
     @Override
     @Transactional(readOnly = true)
     public Page<TicketDto> mine(String email, Pageable pageable) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
         return supportTicketRepository.findByUserOrderByCreatedAtDesc(user, pageable)
                 .map(ticketMapper::toDto);
@@ -108,7 +109,7 @@ public class TicketService implements ITicketService {
     @Override
     @Transactional
     public TicketDto resolve(UUID id, ResolveTicketRequest request, String actorEmail) {
-        User actor = userRepository.findByEmail(actorEmail)
+        User actor = userRepository.findByEmailIgnoreCase(actorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + actorEmail));
         SupportTicket ticket = supportTicketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Support ticket not found: " + id));
@@ -134,7 +135,7 @@ public class TicketService implements ITicketService {
     @Override
     @Transactional
     public int flagProlonged() {
-        Instant cutoff = TimeUtil.now().minusSeconds(60 * 60L);
+        Instant cutoff = TimeUtil.now().toInstant().minusSeconds(60 * 60L);
         List<SupportTicket> tickets = supportTicketRepository.findOpenBlockersOlderThan(cutoff);
         for (SupportTicket ticket : tickets) {
             ticket.setProlonged(true);
