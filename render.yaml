@@ -6,6 +6,8 @@ services:
     name: capaciti-backend
     runtime: docker
     plan: free
+    # Closest Render region to the Supabase pooler (aws eu-west-1).
+    region: frankfurt
     rootDir: capaciti-online-register-backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
